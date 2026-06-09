@@ -1,0 +1,6 @@
+{
+  "name": "CampusGo",
+  "description": "A sophisticated, data-driven university transit, carpool, safewalk, and lost & found management ecosystem.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

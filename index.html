@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusGo - Smart Campus Transit & Safety</title>
+    <!-- Prevent wallet extensions (like Zerion, Rabby, etc.) from crashing the page on duplicate injections -->
+    <script>
+      (function() {
+        // Clear global error reporting for extension-related issues
+        window.addEventListener('error', function(e) {
+          if (e.message && (
+              e.message.indexOf('isZerion') !== -1 || 
+              e.message.indexOf('redefine property') !== -1 || 
+              e.message.indexOf('defineProperty') !== -1
+          )) {
+            console.warn('Safely prevented extension definition error propagation:', e.message);
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            return true;
+          }
+        }, true);
+
+        const originalDefineProperty = Object.defineProperty;
+        const originalGetOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
+        Object.defineProperty = function(obj, prop, descriptor) {
+          try {
+            if (obj && (typeof obj === 'object' || typeof obj === 'function')) {
+              // Get original descriptor if it exists
+              const desc = originalGetOwnPropertyDescriptor ? originalGetOwnPropertyDescriptor(obj, prop) : null;
+              if (desc && !desc.configurable) {
+                // If the property is already defined on the object and is not configurable,
+                // redefining it will trigger a fatal TypeError. We safely bypass this.
+                console.warn(`Prevented redefinition of non-configurable property: ${String(prop)}`);
+                return obj;
+              }
+            }
+            return originalDefineProperty(obj, prop, descriptor);
+          } catch (e) {
+            console.warn(`Safely intercepted defineProperty error for property "${String(prop)}":`, e);
+            return obj;
+          }
+        };
+
+        const originalDefineProperties = Object.defineProperties;
+        Object.defineProperties = function(obj, props) {
+          try {
+            if (obj && props && (typeof obj === 'object' || typeof obj === 'function')) {
+              const safeProps = {};
+              for (const key in props) {
+                if (Object.prototype.hasOwnProperty.call(props, key)) {
+                  const desc = originalGetOwnPropertyDescriptor ? originalGetOwnPropertyDescriptor(obj, key) : null;
+                  if (!desc || desc.configurable) {
+                    safeProps[key] = props[key];
+                  } else {
+                    console.warn(`Prevented multi-redefinition of non-configurable property: ${key}`);
+                  }
+                }
+              }
+              return originalDefineProperties(obj, safeProps);
+            }
+            return originalDefineProperties(obj, props);
+          } catch (e) {
+            console.warn("Safely intercepted defineProperties error:", e);
+            return obj;
+          }
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+
