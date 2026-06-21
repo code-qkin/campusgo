@@ -1,0 +1,103 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { Driver } from '../types'
+import { MapPin, Flag, Users, Clock, CheckCircle } from 'lucide-vue-next'
+
+const props = defineProps<{ driver: Driver }>()
+const rides = ref<any[]>([])
+const isLoading = ref(false)
+const alert = (msg: string) => window.alert(msg)
+
+const getToken = () => localStorage.getItem('driver_token')
+
+const fetchHistory = async () => {
+  isLoading.value = true
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/driver/history', {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+        'Accept': 'application/json'
+      }
+    })
+    const data = await res.json()
+    rides.value = data
+  } catch (e) {
+    alert('Failed to fetch history')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => fetchHistory())
+</script>
+
+<template>
+  <div class="p-6 overflow-y-auto h-full space-y-4">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-xl font-bold text-on-surface">Ride History</h2>
+      <button @click="fetchHistory"
+        class="text-xs font-semibold text-brand-tertiary hover:brightness-110 cursor-pointer border-none bg-transparent">
+        Refresh
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="isLoading" class="flex items-center justify-center py-20">
+      <div class="w-6 h-6 rounded-full border-2 border-brand-tertiary/20 border-t-brand-tertiary animate-spin"></div>
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="rides.length === 0"
+      class="bg-[#1e1e1e] border border-dashed border-[#2d2d2d] rounded-xl p-12 text-center">
+      <CheckCircle class="w-10 h-10 text-on-surface-variant/30 mx-auto mb-3" />
+      <p class="text-sm text-on-surface font-semibold">No completed rides yet.</p>
+      <p class="text-xs text-on-surface-variant mt-1.5">Completed rides will appear here.</p>
+    </div>
+
+    <!-- History list -->
+    <div v-else class="space-y-4">
+      <div v-for="ride in rides" :key="ride.id"
+        class="bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-5">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold text-on-surface">{{ ride.route?.name || 'Unknown Route' }}</h3>
+          <span class="flex items-center gap-1 text-xs font-bold text-brand-tertiary">
+            <CheckCircle class="w-3.5 h-3.5" />
+            Completed
+          </span>
+        </div>
+
+        <!-- Stops -->
+        <div class="space-y-2 mb-4" v-if="ride.route?.stops?.length">
+          <div class="flex items-center gap-2 text-xs">
+            <MapPin class="w-3.5 h-3.5 text-on-surface-variant shrink-0" />
+            <span class="text-on-surface-variant">From:</span>
+            <span class="text-on-surface font-semibold">{{ ride.route.stops[0]?.name }}</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <Flag class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+            <span class="text-on-surface-variant">To:</span>
+            <span class="text-on-surface font-semibold">{{ ride.route.stops[ride.route.stops.length - 1]?.name }}</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between pt-3 border-t border-[#2d2d2d] text-xs text-on-surface-variant">
+          <span class="flex items-center gap-1.5">
+            <Users class="w-3.5 h-3.5" />
+            {{ ride.passengers?.filter((p: any) => p.status === 'completed').length || 0 }} passengers
+          </span>
+          <span class="flex items-center gap-1.5 capitalize">
+            <span class="font-semibold">{{ ride.vehicle_type }}</span>
+            · {{ ride.ride_type }}
+          </span>
+          <span class="flex items-center gap-1.5">
+            <Clock class="w-3.5 h-3.5" />
+            {{ new Date(ride.updated_at).toLocaleDateString() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

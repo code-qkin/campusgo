@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-bg: #131313;
+  --color-brand-surface: #201f1f;
+  --color-brand-surface-low: #1c1b1b;
+  --color-brand-surface-high: #2a2a2a;
+  --color-brand-surface-highest: #353534;
+  --color-brand-primary: #ffb4aa;
+  --color-brand-primary-container: #ff5f52;
+  --color-brand-secondary: #ddb7ff;
+  --color-brand-tertiary: #4edea3;
+  --color-brand-error: #ffb4ab;
+  --color-brand-error-container: #93000a;
+  --color-on-surface: #f4f3f2;
+  --color-on-surface-variant: #a8a5a2;
+}
