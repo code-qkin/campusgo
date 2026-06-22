@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Bus, MapPin, Shield, CheckCircle, Navigation, ArrowRight } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
+import { MapPin, Shield, CheckCircle, Navigation, ArrowRight } from 'lucide-vue-next';
+import FutaLogo from './FutaLogo.vue';
 
-const emit = defineEmits(['get-started']);
+const router = useRouter();
 
 const mousePos = ref({ x: 0, y: 0 });
 
@@ -48,7 +50,7 @@ onUnmounted(() => {
           <div class="absolute -inset-6 bg-brand-primary-container/20 blur-3xl rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-750"></div>
           <!-- Logo Frame -->
           <div class="relative bg-[#1a1a1a]/85 border border-[#2a2a2a] max-md:p-5 p-8 rounded-full shadow-[0_0_40px_10px_rgba(255,95,82,0.15)] transform transition-transform group-hover:scale-105 duration-500">
-            <Bus class="max-md:w-14 max-md:h-14 w-20 h-20 text-brand-primary duration-500" />
+            <FutaLogo size="max-md:w-14 max-md:h-14 w-20 h-20" />
             <div class="absolute -top-1 -right-1 animate-bounce duration-1000">
               <MapPin class="w-10 h-10 text-brand-secondary fill-brand-secondary" />
             </div>
@@ -70,7 +72,7 @@ onUnmounted(() => {
       <div class="mt-7 md:mt-10 group">
         <button 
           id="btn-get-started"
-          @click="emit('get-started')"
+          @click="router.push('/login')"
           class="group relative flex items-center gap-3 bg-[#ff5f52] hover:bg-[#ff786d] text-white px-10 py-5 rounded-lg font-semibold text-base transition-all duration-300 hover:shadow-[0_0_35px_rgba(255,95,82,0.45)] overflow-hidden active:scale-95 cursor-pointer"
         >
           <!-- Shift background shine -->
@@ -100,7 +102,7 @@ onUnmounted(() => {
     <!-- Footer Decorative Attribution -->
     <footer class="fixed bottom-6 left-10 right-10 flex justify-between items-center z-10 pointer-events-none">
       <div class="text-on-surface-variant/40 text-xs font-semibold uppercase tracking-wider">
-        © 2024 CampusGo Infrastructure
+        © 2025 CampusGo
       </div>
       <div class="flex items-center gap-3 bg-[#1e1e1e]/60 border border-[#222] px-3 py-1.5 rounded-full backdrop-blur-md">
         <div class="w-2.5 h-2.5 rounded-full bg-brand-tertiary animate-pulse"></div>

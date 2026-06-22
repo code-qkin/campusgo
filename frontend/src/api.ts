@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:8000/api'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api'
 
 const getToken = () => localStorage.getItem('campusgo_token')
 
@@ -8,7 +8,7 @@ export const api = {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
         'Accept': 'application/json',
-      }
+      },
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Request failed')
@@ -23,7 +23,7 @@ export const api = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Request failed')
@@ -37,7 +37,7 @@ export const api = {
         'Authorization': `Bearer ${getToken()}`,
         'Accept': 'application/json',
       },
-      body: formData
+      body: formData,
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Upload failed')
@@ -52,7 +52,7 @@ export const api = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Request failed')
@@ -65,10 +65,10 @@ export const api = {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
         'Accept': 'application/json',
-      }
+      },
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Request failed')
     return data
-  }
+  },
 }

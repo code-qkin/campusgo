@@ -23,6 +23,13 @@ export default defineConfig(() => {
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      historyApiFallback: {
+        rewrites: [
+          { from: /^\/index-admin\.html/, to: '/index-admin.html' },
+          { from: /^\/index-driver\.html/, to: '/index-driver.html' },
+          { from: /^\/(?!index-).*/, to: '/index.html' },
+        ],
+      },
     },
   };
 });

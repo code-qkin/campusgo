@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { ActiveTab, User } from '../types';
+import { useRouter } from 'vue-router';
+import { User } from '../types';
 import { api } from '../api';
+
+const router = useRouter();
 import { 
   Navigation, 
   Bus, 
@@ -17,7 +20,6 @@ const props = defineProps<{
   user: User
 }>();
 
-const emit = defineEmits(['change-tab']);
 
 const myRides = ref<any[]>([]);
 const isLoading = ref(false);
@@ -36,8 +38,16 @@ const fetchMyRides = async () => {
 
 onMounted(() => fetchMyRides());
 
-const handleActionClick = (target: ActiveTab) => {
-  emit('change-tab', target);
+const routeMap: Record<string, string> = {
+  Carpool: '/carpool',
+  LostFound: '/lost-found',
+  History: '/history',
+  SafeWalk: '/lost-found', // SafeWalk not built yet, fallback to Lost & Found
+};
+
+const handleActionClick = (target: string) => {
+  const path = routeMap[target] || '/home';
+  router.push(path);
 };
 
 const getGreeting = () => {
@@ -71,7 +81,7 @@ const getGreeting = () => {
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
             <!-- Carpool -->
-            <div @click="handleActionClick(ActiveTab.Carpool)"
+            <div @click="handleActionClick('Carpool')"
               class="bg-[#201f1f] border border-[#2d2d2d] rounded-xl p-5 hover:border-brand-primary/40 transition-all cursor-pointer group active:scale-98">
               <div class="w-12 h-12 rounded-full bg-brand-tertiary/10 text-brand-tertiary border border-brand-tertiary/20 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
                 <Users class="w-6 h-6 text-brand-tertiary" />
@@ -86,7 +96,7 @@ const getGreeting = () => {
             </div>
 
             <!-- Lost & Found -->
-            <div @click="handleActionClick(ActiveTab.LostFound)"
+            <div @click="handleActionClick('LostFound')"
               class="bg-[#201f1f] border border-[#2d2d2d] rounded-xl p-5 hover:border-brand-primary/40 transition-all cursor-pointer group active:scale-98">
               <div class="w-12 h-12 rounded-full bg-[#ffb4aa]/10 text-[#ffb4aa] border border-[#ffb4aa]/20 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
                 <Search class="w-6 h-6" />
@@ -101,7 +111,7 @@ const getGreeting = () => {
             </div>
 
             <!-- SafeWalk - under maintenance -->
-            <div @click="handleActionClick(ActiveTab.SafeWalk)"
+            <div @click="handleActionClick('SafeWalk')"
               class="bg-[#201f1f] border border-[#2d2d2d] rounded-xl p-5 hover:border-brand-primary/40 transition-all cursor-pointer group active:scale-98 relative">
               <span class="absolute top-3 right-3 text-[9px] font-bold px-2 py-0.5 rounded-full bg-brand-secondary/15 text-brand-secondary flex items-center gap-1">
                 <Wrench class="w-2.5 h-2.5" /> Soon
@@ -125,7 +135,7 @@ const getGreeting = () => {
         <div class="flex-1 flex flex-col min-h-[250px]">
           <div class="flex justify-between items-end mb-4">
             <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">My Rides</h3>
-            <button @click="handleActionClick(ActiveTab.Carpool)"
+            <button @click="handleActionClick('Carpool')"
               class="text-xs text-brand-primary hover:underline font-bold bg-transparent border-none cursor-pointer">
               View All
             </button>
@@ -145,7 +155,7 @@ const getGreeting = () => {
           <div v-else class="bg-[#201f1f] border border-[#2d2d2d] rounded-xl overflow-hidden flex flex-col flex-grow">
             <div v-for="ride in myRides" :key="ride.id"
               class="p-4 border-b border-[#2d2d2d]/60 last:border-b-0 hover:bg-[#2a2a2a]/45 transition-colors flex gap-4 items-center cursor-pointer"
-              @click="handleActionClick(ActiveTab.Carpool)">
+              @click="handleActionClick('Carpool')">
               <div class="w-10 h-10 rounded-full bg-brand-tertiary/10 text-brand-tertiary border border-brand-tertiary/20 flex items-center justify-center shrink-0">
                 <Car class="w-5 h-5" />
               </div>
@@ -178,12 +188,12 @@ const getGreeting = () => {
         <div class="bg-[#201f1f] border border-[#2d2d2d] rounded-xl p-6">
           <h3 class="text-xs text-on-surface-variant font-bold uppercase tracking-widest mb-4">Quick Links</h3>
           <div class="space-y-2">
-            <button @click="handleActionClick(ActiveTab.History)"
+            <button @click="handleActionClick('History')"
               class="w-full text-left text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-all bg-transparent border-none p-2.5 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center justify-between">
               Activity History
               <ChevronRight class="w-3.5 h-3.5" />
             </button>
-            <button @click="handleActionClick(ActiveTab.LostFound)"
+            <button @click="handleActionClick('LostFound')"
               class="w-full text-left text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-all bg-transparent border-none p-2.5 rounded-lg hover:bg-[#2a2a2a] cursor-pointer flex items-center justify-between">
               Lost & Found
               <ChevronRight class="w-3.5 h-3.5" />
