@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { User } from '../types';
-import { Bell, ShieldAlert, User as UserIcon, Lock, CheckCircle } from 'lucide-vue-next';
+import { Bell, ShieldAlert, User as UserIcon, Lock, CheckCircle, Camera } from 'lucide-vue-next';
 import { api } from '../api';
 
 const props = defineProps<{ user: User }>();
@@ -69,6 +69,45 @@ const handlePasswordChange = async () => {
   }
 };
 
+// Avatar upload
+const avatarPreview    = ref<string | null>(props.user.avatarUrl || null);
+const avatarUploading  = ref(false);
+const avatarMsg        = ref('');
+
+watch(() => props.user.avatarUrl, (v) => { if (v) avatarPreview.value = v });
+
+const onAvatarPick = async (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => { avatarPreview.value = ev.target?.result as string };
+  reader.readAsDataURL(file);
+
+  avatarUploading.value = true;
+  avatarMsg.value = '';
+  try {
+    const form = new FormData();
+    form.append('avatar', file);
+    const token = localStorage.getItem('campusgo_token') || '';
+    const res   = await fetch(`${import.meta.env.VITE_API_BASE}/user/avatar`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      body: form,
+    });
+    const data  = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Upload failed');
+    emit('update-user', { avatarUrl: data.avatar_url });
+    const stored = JSON.parse(localStorage.getItem('campusgo_user') || '{}');
+    localStorage.setItem('campusgo_user', JSON.stringify({ ...stored, avatar_url: data.avatar_url }));
+    avatarMsg.value = 'Photo updated!';
+    setTimeout(() => { avatarMsg.value = '' }, 3000);
+  } catch (e: any) {
+    avatarMsg.value = e.message || 'Upload failed';
+  } finally {
+    avatarUploading.value = false;
+  }
+};
+
 // Notification toggles (UI only — persisted locally until backend supports it)
 const notifyToggles = ref({ transDelays: true, poolApprovals: true, safetyAlerts: true });
 const privacyToggles = ref({ shareLocation: true });
@@ -90,6 +129,24 @@ const privacyToggles = ref({ shareLocation: true });
           <h3 class="text-sm font-bold text-on-surface uppercase tracking-widest flex items-center gap-2 select-none">
             <UserIcon class="w-5 h-5 text-brand-primary" /> University Profile
           </h3>
+
+          <!-- Avatar -->
+          <div class="flex items-center gap-4">
+            <label class="relative cursor-pointer group">
+              <div class="w-16 h-16 rounded-full overflow-hidden bg-[#131313] border-2 border-[#2d2d2d] group-hover:border-brand-primary transition-all flex items-center justify-center shrink-0">
+                <img v-if="avatarPreview" :src="avatarPreview" class="w-full h-full object-cover" alt="Avatar" />
+                <UserIcon v-else class="w-7 h-7 text-on-surface-variant/40" />
+              </div>
+              <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-brand-primary flex items-center justify-center border-2 border-[#1e1e1e]">
+                <Camera class="w-3 h-3 text-white" />
+              </div>
+              <input type="file" accept="image/*" @change="onAvatarPick" class="sr-only" :disabled="avatarUploading" />
+            </label>
+            <div>
+              <p class="text-sm font-bold text-on-surface">{{ user.fullName }}</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">{{ avatarUploading ? 'Uploading...' : (avatarMsg || 'Click photo to change') }}</p>
+            </div>
+          </div>
 
           <div v-if="profileError"
             class="p-3 bg-brand-error/15 border border-brand-error/30 rounded-lg text-xs text-brand-error font-medium">

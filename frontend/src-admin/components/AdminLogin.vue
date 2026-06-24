@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { Mail, Lock, Shield, ArrowRight } from 'lucide-vue-next';
-import { AdminUser } from '../types';
 
-const emit = defineEmits<{
-  'login-success': [user: AdminUser]
-}>();
+const router = useRouter();
+const API = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000/api';
 
-const email = ref('admin@student.futa.edu.ng');
-const password = ref('admin123');
+const email = ref('');
+const password = ref('');
 const isSubmitting = ref(false);
 const errorMsg = ref('');
 
@@ -22,38 +21,23 @@ const handleSubmit = async () => {
   errorMsg.value = '';
 
   try {
-    const res = await fetch('http://127.0.0.1:8000/api/login', {
+    const res = await fetch(`${API}/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ email: email.value, password: password.value })
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value }),
     })
 
     const data = await res.json()
 
-    if (!res.ok) {
-      errorMsg.value = data.message || 'Invalid credentials.'
-      return
-    }
+    if (!res.ok) { errorMsg.value = data.message || 'Invalid credentials.'; return }
 
     if (!['campus_admin', 'super_admin'].includes(data.user.role)) {
-      errorMsg.value = 'This account does not have admin access.'
-      return
+      errorMsg.value = 'This account does not have admin access.'; return
     }
 
     localStorage.setItem('admin_token', data.token)
     localStorage.setItem('admin_user', JSON.stringify(data.user))
-
-    emit('login-success', {
-      id: String(data.user.id),
-      fullName: data.user.full_name,
-      email: data.user.email,
-      role: data.user.role,
-      campusId: data.user.campus_id ? String(data.user.campus_id) : null,
-      campusName: null, // fetched separately if needed
-    })
+    router.push('/dashboard')
   } catch (e) {
     errorMsg.value = 'Could not reach server.'
   } finally {

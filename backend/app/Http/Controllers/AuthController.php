@@ -67,10 +67,17 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        $driverStatus = null;
+        if ($user->role === 'driver') {
+            $profile      = $user->driverProfile;
+            $driverStatus = $profile ? $profile->status : 'pending';
+        }
+
         return response()->json([
-            'message' => 'Login successful.',
-            'user'    => $user,
-            'token'   => $token,
+            'message'       => 'Login successful.',
+            'user'          => $user,
+            'token'         => $token,
+            'driver_status' => $driverStatus,
         ]);
     }
 
@@ -84,6 +91,22 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate(['avatar' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048']);
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $url  = asset('storage/' . $path);
+
+        $request->user()->update(['avatar_url' => $url]);
+
+        return response()->json([
+            'message'    => 'Avatar updated.',
+            'avatar_url' => $url,
+            'user'       => $request->user()->fresh(),
+        ]);
     }
 
     public function updateProfile(Request $request)

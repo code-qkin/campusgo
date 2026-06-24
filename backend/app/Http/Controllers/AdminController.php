@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\CarpoolRide;
+use App\Models\DriverProfile;
 use App\Models\LostFoundItem;
 
 class AdminController extends Controller
@@ -57,9 +58,50 @@ class AdminController extends Controller
     public function toggleStudent(Request $request, $id)
     {
         $student = User::findOrFail($id);
-        // in AdminController toggleStudent
         $student->update(['is_active' => !$student->is_active]);
         return response()->json($student);
+    }
 
+    public function drivers(Request $request)
+    {
+        $campusId     = $request->user()->campus_id;
+        $isSuperAdmin = $request->user()->role === 'super_admin';
+
+        $query = User::where('role', 'driver')->with(['driverProfile', 'campus']);
+
+        if (!$isSuperAdmin) {
+            $query->where('campus_id', $campusId);
+        }
+
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('full_name', 'like', "%{$request->search}%")
+                  ->orWhere('email', 'like', "%{$request->search}%");
+            });
+        }
+
+        return response()->json($query->latest()->get());
+    }
+
+    public function approveDriver(Request $request, $id)
+    {
+        $profile = DriverProfile::where('user_id', $id)->firstOrFail();
+        $profile->update([
+            'status'      => 'approved',
+            'verified_at' => now(),
+            'verified_by' => $request->user()->id,
+        ]);
+        return response()->json(['message' => 'Driver approved.']);
+    }
+
+    public function rejectDriver(Request $request, $id)
+    {
+        $request->validate(['reason' => 'nullable|string|max:500']);
+        $profile = DriverProfile::where('user_id', $id)->firstOrFail();
+        $profile->update([
+            'status'           => 'rejected',
+            'rejection_reason' => $request->reason,
+        ]);
+        return response()->json(['message' => 'Driver rejected.']);
     }
 }

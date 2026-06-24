@@ -1,27 +1,44 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useRouter, useRoute, RouterView } from 'vue-router'
 import { Driver } from '../types.ts'
-import AvailableRides from './AvailableRides.vue'
-import ActiveRide from './ActiveRide.vue'
-import RideHistory from './RideHistory.vue'
 
-const props = defineProps<{ driver: Driver }>()
-const emit = defineEmits(['logout'])
+const router = useRouter()
+const route  = useRoute()
 
-type DriverTab = 'available' | 'active' | 'history'
-const activeTab = ref<DriverTab>('available')
+const driver = computed<Driver>(() => {
+  try {
+    const raw = JSON.parse(localStorage.getItem('driver_user') || '{}')
+    return {
+      id:         raw.id || 0,
+      fullName:   raw.full_name || raw.fullName || '',
+      email:      raw.email || '',
+      role:       raw.role || 'driver',
+      campusId:   raw.campus_id ? String(raw.campus_id) : null,
+      campusName: null,
+    }
+  } catch {
+    return { id: 0, fullName: '', email: '', role: 'driver', campusId: null, campusName: null }
+  }
+})
 
 const handleLogout = () => {
-    localStorage.removeItem('driver_token');
-    localStorage.removeItem('driver_user');
-    emit('logout');
+  localStorage.removeItem('driver_token')
+  localStorage.removeItem('driver_user')
+  localStorage.removeItem('driver_status')
+  router.push('/login')
 }
 
+const tabs = [
+  { path: '/available', label: '🟢 Available' },
+  { path: '/active',    label: '🚦 Active Ride' },
+  { path: '/history',   label: '📋 History' },
+  { path: '/password',  label: '🔑 Password' },
+]
 </script>
+
 <template>
   <div class="min-h-screen bg-[#131313] text-on-surface flex flex-col font-sans">
-
-    <!-- Header -->
     <header class="h-16 bg-[#1c1b1b] border-b border-[#2d2d2d] flex items-center justify-between px-6 shrink-0">
       <div class="flex items-center gap-3">
         <div class="w-7 h-7 rounded-lg bg-brand-tertiary/20 border border-brand-tertiary/30 flex items-center justify-center">
@@ -38,28 +55,21 @@ const handleLogout = () => {
       </button>
     </header>
 
-    <!-- Tab navigation -->
-    <nav class="bg-[#1c1b1b] border-b border-[#2d2d2d] flex shrink-0">
-      <button v-for="tab in ([
-        { id: 'available', label: '🟢 Available Rides' },
-        { id: 'active',    label: '🚦 Active Ride' },
-        { id: 'history',   label: '📋 History' },
-      ] as const)" :key="tab.id"
-        @click="activeTab = tab.id"
-        class="flex-1 py-3.5 text-xs font-bold transition-all cursor-pointer border-none border-b-2"
-        :class="activeTab === tab.id
+    <nav class="bg-[#1c1b1b] border-b border-[#2d2d2d] flex shrink-0 overflow-x-auto">
+      <button v-for="tab in tabs" :key="tab.path"
+        @click="router.push(tab.path)"
+        class="flex-1 min-w-max py-3.5 px-4 text-xs font-bold transition-all cursor-pointer border-none border-b-2"
+        :class="route.path === tab.path
           ? 'text-brand-tertiary border-brand-tertiary bg-brand-tertiary/5'
           : 'text-on-surface-variant border-transparent hover:text-on-surface bg-transparent'">
         {{ tab.label }}
       </button>
     </nav>
 
-    <!-- Content -->
     <main class="flex-1 overflow-hidden">
-      <AvailableRides v-if="activeTab === 'available'" :driver="driver" />
-      <ActiveRide    v-else-if="activeTab === 'active'" :driver="driver" />
-      <RideHistory   v-else-if="activeTab === 'history'" :driver="driver" />
+      <RouterView v-slot="{ Component }">
+        <component :is="Component" :driver="driver" />
+      </RouterView>
     </main>
-
   </div>
 </template>

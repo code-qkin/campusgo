@@ -16,6 +16,7 @@ export interface User {
   fullName: string;
   email: string;
   avatar: string;
+  avatarUrl?: string;
   points: number;
 }
 

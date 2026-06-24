@@ -1,7 +1,8 @@
 {
-  "rewrites": [
-    { "source": "/index-admin.html", "destination": "/index-admin.html" },
-    { "source": "/index-driver.html", "destination": "/index-driver.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/index-admin.html", "dest": "/index-admin.html" },
+    { "src": "/index-driver.html", "dest": "/index-driver.html" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

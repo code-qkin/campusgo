@@ -12,6 +12,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\RouteGeneratorController;
 use App\Http\Controllers\CampusStopController;
 use App\Http\Controllers\SocialAuthController;
+use App\Http\Controllers\DriverAuthController;
 
 // Public
 Route::get('/campuses', [CampusController::class, 'index']);
@@ -24,6 +25,9 @@ Route::middleware('throttle:10,1')->group(function () {
 // Google OAuth — complete signup (called from frontend after campus selection)
 Route::post('/auth/google/complete', [SocialAuthController::class, 'completeGoogleSignup'])
     ->middleware('throttle:10,1');
+
+// Driver registration (public — multipart/form-data with vehicle image)
+Route::post('/driver/register', [DriverAuthController::class, 'register'])->middleware('throttle:10,1');
 
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
@@ -39,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/profile',            [AuthController::class, 'updateProfile']);
     Route::patch('/user/password',           [AuthController::class, 'changePassword']);
     Route::post('/email/resend',             [AuthController::class, 'resendVerification']);
+    Route::post('/user/avatar',              [AuthController::class, 'uploadAvatar']);
 
     // Stops
     Route::get('/stops/popular',             [RouteController::class, 'popularStops']);
@@ -85,6 +90,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/stats',               [AdminController::class, 'stats']);
     Route::get('/admin/students',            [AdminController::class, 'students']);
     Route::patch('/admin/students/{id}/toggle', [AdminController::class, 'toggleStudent']);
+    Route::get('/admin/drivers',                [AdminController::class, 'drivers']);
+    Route::patch('/admin/drivers/{id}/approve', [AdminController::class, 'approveDriver']);
+    Route::patch('/admin/drivers/{id}/reject',  [AdminController::class, 'rejectDriver']);
 
     // Campus stops
     Route::get('/campus-stops',              [CampusStopController::class, 'index']);

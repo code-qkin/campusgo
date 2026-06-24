@@ -16,6 +16,7 @@ class User extends Authenticatable // implements MustVerifyEmail — re-enable w
         'campus_id',
         'full_name',
         'email',
+        'avatar_url',
         'role',
         'password',
         'points',
@@ -39,5 +40,10 @@ class User extends Authenticatable // implements MustVerifyEmail — re-enable w
     public function campus()
     {
         return $this->belongsTo(Campus::class);
+    }
+
+    public function driverProfile()
+    {
+        return $this->hasOne(DriverProfile::class);
     }
 }
